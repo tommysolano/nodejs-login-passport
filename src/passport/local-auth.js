@@ -17,7 +17,7 @@ passport.use("local-signup", new LocalStrategy({
     passReqToCallback: true
 }, async (req, email, password, done) => {
     
-    const user = User.findOne({email: email})
+    const user = await User.findOne({email: email})
     
     if(user){
         return done(null, false, req.flash("signupMessage","The Email is already taken"))
@@ -35,4 +35,18 @@ passport.use("local-signin", new LocalStrategy({
     usernameField: "email",
     passwordField: "password",
     passReqToCallback: true
-}, () => {}))
+}, async(req, email, password, done) => {
+
+    const user = await User.findOne({email: email})
+
+    if(!user){
+        done(null, false, req.flash("signinMessage", "No user found"))
+    }
+
+    if(!user.comparePassword(password)){
+        return done(null, false, req.flash("signinMessage", "incorrect password"))
+    }
+
+    done(null, user)
+
+}))
